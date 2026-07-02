@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.rollcall.mapper.StudentMapper">
+    <resultMap id="StudentResultMap" type="com.example.rollcall.model.Student">
+        <id property="id" column="id"/>
+        <result property="studentNo" column="student_no"/>
+        <result property="name" column="name"/>
+        <result property="gender" column="gender"/>
+        <result property="classScore" column="class_score"/>
+    </resultMap>
+
+    <update id="createTable">
+        CREATE TABLE IF NOT EXISTS students (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            student_no VARCHAR(20) NOT NULL UNIQUE,
+            name VARCHAR(50) NOT NULL,
+            gender VARCHAR(10) NOT NULL,
+            class_score INT NOT NULL DEFAULT 0
+        )
+    </update>
+
+    <select id="countStudents" resultType="int">SELECT COUNT(*) FROM students</select>
+
+    <insert id="insertStudent" parameterType="com.example.rollcall.model.Student">
+        INSERT INTO students (student_no, name, gender, class_score)
+        VALUES (#{studentNo}, #{name}, #{gender}, #{classScore})
+    </insert>
+
+    <select id="findAll" resultMap="StudentResultMap">
+        SELECT id, student_no, name, gender, class_score FROM students ORDER BY student_no
+    </select>
+
+    <select id="findByFilters" resultMap="StudentResultMap">
+        SELECT id, student_no, name, gender, class_score FROM students
+        <where>
+            <if test="studentNo != null and studentNo != ''">
+                student_no LIKE CONCAT('%', #{studentNo}, '%')
+            </if>
+            <if test="gender != null and gender != '' and gender != '全部'">
+                AND gender = #{gender}
+            </if>
+        </where>
+        ORDER BY RAND()
+    </select>
+
+    <select id="findScoreRanking" resultMap="StudentResultMap">
+        SELECT id, student_no, name, gender, class_score FROM students
+        ORDER BY class_score DESC, student_no ASC
+    </select>
+
+    <update id="updateScore">
+        UPDATE students SET class_score = class_score + #{delta} WHERE id = #{id}
+    </update>
+</mapper>
